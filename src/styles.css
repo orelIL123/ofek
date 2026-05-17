@@ -637,6 +637,28 @@ main {
     linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(234, 223, 206, 0.78));
 }
 
+.gallery-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.09) 30%,
+    transparent 52%
+  );
+  mix-blend-mode: overlay;
+  transition: opacity 400ms ease;
+  opacity: 0.9;
+}
+
+.gallery-photo:hover::after {
+  opacity: 0.5;
+}
+
 .gallery-photo img {
   width: 100%;
   height: 100%;
@@ -710,6 +732,7 @@ main {
 }
 
 .review-card {
+  position: relative;
   min-height: 240px;
   padding: 1.4rem;
   border: 1px solid rgba(18, 18, 18, 0.08);
@@ -720,18 +743,55 @@ main {
   box-shadow:
     0 16px 40px rgba(0, 0, 0, 0.05),
     0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  transform: perspective(900px)
+    translateY(var(--lift, 0px))
+    rotateX(var(--rx, 0deg))
+    rotateY(var(--ry, 0deg));
   transition:
-    transform 250ms ease,
+    transform 200ms ease,
     box-shadow 250ms ease,
     border-color 250ms ease;
+  will-change: transform;
+  overflow: hidden;
+}
+
+.review-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.26) 0%,
+    rgba(255, 255, 255, 0.07) 38%,
+    transparent 58%
+  );
+  transition: background 80ms linear;
 }
 
 .review-card:hover {
-  transform: translateY(-6px);
+  --lift: -6px;
   border-color: rgba(179, 58, 76, 0.22);
   box-shadow:
     0 22px 56px rgba(127, 29, 45, 0.12),
     0 1px 0 rgba(255, 255, 255, 0.78) inset;
+}
+
+.review-card:hover::after {
+  background:
+    radial-gradient(
+      circle at var(--gx, 30%) var(--gy, 30%),
+      rgba(255, 255, 255, 0.46) 0%,
+      rgba(255, 255, 255, 0.14) 28%,
+      transparent 54%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      transparent 52%
+    );
 }
 
 .review-card div {
@@ -756,10 +816,81 @@ main {
 }
 
 .about {
+  position: relative;
+  overflow: hidden;
   display: grid;
   grid-template-columns: minmax(260px, 0.75fr) minmax(320px, 1fr) minmax(220px, 0.55fr);
   gap: clamp(2rem, 5vw, 6rem);
   align-items: start;
+  background:
+    linear-gradient(180deg, rgba(234, 223, 206, 0.22), rgba(255, 255, 255, 0.72)),
+    radial-gradient(circle at 88% 14%, rgba(179, 58, 76, 0.09), transparent 22rem),
+    radial-gradient(circle at 8% 80%, rgba(200, 164, 107, 0.11), transparent 20rem),
+    radial-gradient(circle at 55% 50%, rgba(184, 199, 188, 0.08), transparent 24rem);
+}
+
+.about::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at var(--mx, 65%) var(--my, 40%), rgba(179, 58, 76, 0.16), transparent 22rem),
+    radial-gradient(circle at calc(var(--mx, 65%) + 160px) calc(var(--my, 40%) - 90px), rgba(200, 164, 107, 0.12), transparent 16rem);
+  opacity: 0.85;
+  pointer-events: none;
+  transition: opacity 600ms ease;
+}
+
+.about > * {
+  position: relative;
+  z-index: 1;
+}
+
+.about-orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.about-orb-1 {
+  width: clamp(14rem, 22vw, 22rem);
+  height: clamp(14rem, 22vw, 22rem);
+  top: -6rem;
+  right: -5rem;
+  background: radial-gradient(circle, rgba(179, 58, 76, 0.14), transparent 70%);
+  filter: blur(28px);
+  animation: about-drift-a 16s ease-in-out infinite alternate;
+}
+
+.about-orb-2 {
+  width: clamp(12rem, 18vw, 18rem);
+  height: clamp(12rem, 18vw, 18rem);
+  bottom: -3rem;
+  left: 18%;
+  background: radial-gradient(circle, rgba(200, 164, 107, 0.16), transparent 70%);
+  filter: blur(32px);
+  animation: about-drift-b 20s ease-in-out infinite alternate;
+}
+
+.about-orb-3 {
+  width: clamp(8rem, 12vw, 13rem);
+  height: clamp(8rem, 12vw, 13rem);
+  top: 35%;
+  left: -2rem;
+  background: radial-gradient(circle, rgba(184, 199, 188, 0.2), transparent 70%);
+  filter: blur(24px);
+  animation: about-drift-a 24s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes about-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(20px, -16px, 0) scale(1.1); }
+}
+
+@keyframes about-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-18px, 14px, 0) scale(1.08); }
 }
 
 .about-copy {
@@ -1006,6 +1137,14 @@ html.is-loading {
   border-radius: 999px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.22);
+}
+
+.cursor-trail {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: multiply;
 }
 
 .site-preloader-bar {

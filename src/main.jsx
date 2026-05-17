@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "./styles.css";
+import "./styles-dark.css";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -409,10 +410,32 @@ function ReviewsSection() {
       const rect = section.getBoundingClientRect();
       section.style.setProperty("--mx", `${event.clientX - rect.left}px`);
       section.style.setProperty("--my", `${event.clientY - rect.top}px`);
+
+      const card = event.target.closest(".review-card");
+      if (card) {
+        const cr = card.getBoundingClientRect();
+        const x = event.clientX - cr.left;
+        const y = event.clientY - cr.top;
+        card.style.setProperty("--gx", `${(x / cr.width) * 100}%`);
+        card.style.setProperty("--gy", `${(y / cr.height) * 100}%`);
+        card.style.setProperty("--rx", `${((y - cr.height / 2) / (cr.height / 2)) * -5}deg`);
+        card.style.setProperty("--ry", `${((x - cr.width / 2) / (cr.width / 2)) * 5}deg`);
+      }
+    };
+
+    const handleLeave = (e) => {
+      if (e.target.classList.contains("review-card")) {
+        e.target.style.setProperty("--rx", "0deg");
+        e.target.style.setProperty("--ry", "0deg");
+      }
     };
 
     section.addEventListener("pointermove", handleMove);
-    return () => section.removeEventListener("pointermove", handleMove);
+    section.addEventListener("pointerleave", handleLeave, true);
+    return () => {
+      section.removeEventListener("pointermove", handleMove);
+      section.removeEventListener("pointerleave", handleLeave, true);
+    };
   }, []);
 
   return (
@@ -443,8 +466,25 @@ function ReviewsSection() {
 }
 
 function AboutSection() {
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const handleMove = (e) => {
+      const rect = section.getBoundingClientRect();
+      section.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+      section.style.setProperty("--my", `${e.clientY - rect.top}px`);
+    };
+    section.addEventListener("pointermove", handleMove);
+    return () => section.removeEventListener("pointermove", handleMove);
+  }, []);
+
   return (
-    <section className="section about" id="about">
+    <section className="section about" id="about" ref={sectionRef}>
+      <span className="about-orb about-orb-1" aria-hidden="true" />
+      <span className="about-orb about-orb-2" aria-hidden="true" />
+      <span className="about-orb about-orb-3" aria-hidden="true" />
       <div className="section-heading">
         <p>אודות</p>
         <h2>נוכחות שקטה. תוצאה שמדברת.</h2>
@@ -704,6 +744,132 @@ function SitePreloader({ onComplete }) {
   );
 }
 
+function CursorTrail() {
+  const canvasRef = useRef(null);
+  const stateRef = useRef({ points: [], raf: null });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    const state = stateRef.current;
+    const TRAIL_DURATION = 920;
+    const MAX_POINTS = 80;
+
+    // gold → rose → cranberry (site palette)
+    const COLORS = [
+      { r: 200, g: 164, b: 107 }, // gold  (#c8a46b)
+      { r: 201, g: 143, b: 146 }, // rose  (#c98f92)
+      { r: 179, g: 58,  b: 76  }, // cranberry (#b33a4c)
+    ];
+
+    const lerpColor = (ratio) => {
+      // ratio 0 = tail (gold), 1 = head (cranberry)
+      const seg = ratio < 0.5 ? 0 : 1;
+      const t = ratio < 0.5 ? ratio * 2 : (ratio - 0.5) * 2;
+      const a = COLORS[seg], b2 = COLORS[seg + 1];
+      return {
+        r: Math.round(a.r + (b2.r - a.r) * t),
+        g: Math.round(a.g + (b2.g - a.g) * t),
+        b: Math.round(a.b + (b2.b - a.b) * t),
+      };
+    };
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+
+    const onMove = (e) => {
+      const now = Date.now();
+      const last = state.points[state.points.length - 1];
+      if (!last || Math.hypot(e.clientX - last.x, e.clientY - last.y) > 2) {
+        state.points.push({ x: e.clientX, y: e.clientY, t: now });
+        if (state.points.length > MAX_POINTS) state.points.shift();
+      }
+    };
+
+    const draw = () => {
+      state.raf = requestAnimationFrame(draw);
+      const now = Date.now();
+      state.points = state.points.filter((p) => now - p.t < TRAIL_DURATION);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const pts = state.points;
+      if (pts.length < 2) return;
+
+      const n = pts.length;
+
+      // — glow pass (blurred, larger) —
+      ctx.save();
+      ctx.filter = "blur(6px)";
+      for (let i = 1; i < n; i++) {
+        const life = i / (n - 1);
+        const age = (now - pts[i].t) / TRAIL_DURATION;
+        const opacity = life * (1 - age) * 0.28;
+        if (opacity <= 0.005) continue;
+        const c = lerpColor(life);
+        ctx.beginPath();
+        ctx.moveTo(pts[i - 1].x, pts[i - 1].y);
+        ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.strokeStyle = `rgba(${c.r},${c.g},${c.b},${opacity})`;
+        ctx.lineWidth = life * (1 - age) * 9 + 1;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // — crisp trail pass —
+      for (let i = 1; i < n; i++) {
+        const life = i / (n - 1);
+        const age = (now - pts[i].t) / TRAIL_DURATION;
+        const opacity = life * (1 - age) * 0.75;
+        if (opacity <= 0.005) continue;
+        const c = lerpColor(life);
+        ctx.beginPath();
+        ctx.moveTo(pts[i - 1].x, pts[i - 1].y);
+        ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.strokeStyle = `rgba(${c.r},${c.g},${c.b},${opacity})`;
+        ctx.lineWidth = life * (1 - age) * 2.6 + 0.4;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.stroke();
+      }
+
+      // — pulsing halo at cursor tip —
+      const head = pts[n - 1];
+      if (head && now - head.t < 120) {
+        const pulse = 0.5 + 0.5 * Math.sin(now / 110);
+        const r = 6 + pulse * 4;
+        const grad = ctx.createRadialGradient(head.x, head.y, 0, head.x, head.y, r);
+        grad.addColorStop(0, "rgba(179,58,76,0.55)");
+        grad.addColorStop(0.45, "rgba(179,58,76,0.14)");
+        grad.addColorStop(1, "rgba(179,58,76,0)");
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+    };
+
+    state.raf = requestAnimationFrame(draw);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("resize", resize);
+
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("resize", resize);
+      cancelAnimationFrame(state.raf);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="cursor-trail" aria-hidden="true" />;
+}
+
 function App() {
   const [siteReady, setSiteReady] = useState(false);
   const handleSiteReady = useCallback(() => setSiteReady(true), []);
@@ -719,6 +885,7 @@ function App() {
               <span />
               <span />
             </div>
+            <CursorTrail />
             <div className="site-stage">
               <Hero />
             </div>

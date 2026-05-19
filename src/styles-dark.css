@@ -115,23 +115,6 @@ html.theme-dark .gallery-category-title {
   border-bottom-color: rgba(200, 164, 107, 0.35);
 }
 
-html.theme-dark .gallery-badges span {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(200, 164, 107, 0.22);
-  color: rgba(255, 255, 255, 0.82);
-}
-
-html.theme-dark .gallery-jump a {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.82);
-}
-
-html.theme-dark .gallery-jump a:hover {
-  border-color: rgba(200, 164, 107, 0.45);
-  background: rgba(200, 164, 107, 0.1);
-}
-
 html.theme-dark .gallery-photo {
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
@@ -232,22 +215,4 @@ html.theme-dark .site-preloader-kicker {
       radial-gradient(circle at 50% 12%, rgba(200, 164, 107, 0.1), transparent 16rem);
     mix-blend-mode: normal;
   }
-}
-
-html.theme-dark .review-submit {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(16, 16, 16, 0.82);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
-}
-
-html.theme-dark .review-submit span,
-html.theme-dark .review-submit small {
-  color: rgba(255, 255, 255, 0.58);
-}
-
-html.theme-dark .review-submit input,
-html.theme-dark .review-submit textarea {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: #f5f2ee;
 }

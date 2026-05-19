@@ -4,17 +4,6 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "./styles.css";
 import "./styles-dark.css";
-import {
-  getAdminSession,
-  isSupabaseConfigured,
-  loadAdminReviews,
-  loadPublicContent,
-  signInAdmin,
-  signOutAdmin,
-  submitVisitorReview,
-  updateReviewStatus,
-  uploadGalleryPhoto,
-} from "./supabaseClient";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,7 +16,7 @@ const WHATSAPP_MESSAGE = encodeURIComponent(
 const PRELOADER_VIDEO = "/assets/pre_loading.mp4";
 const HERO_VIDEO = "/assets/hero-scroll-video.mp4";
 
-const fallbackGalleryCategories = [
+const galleryCategories = [
   {
     id: "wedding",
     label: "חתונה",
@@ -54,23 +43,9 @@ const fallbackGalleryCategories = [
   })),
 }));
 
-const galleryItems = fallbackGalleryCategories.flatMap((category) => category.items);
+const galleryItems = galleryCategories.flatMap((category) => category.items);
 
-function buildGalleryCategories(remotePhotos) {
-  if (!remotePhotos?.length) return fallbackGalleryCategories;
-
-  return fallbackGalleryCategories.map((category) => ({
-    ...category,
-    items: remotePhotos
-      .filter((photo) => photo.category_id === category.id)
-      .map((photo, index) => ({
-        src: photo.file_url,
-        alt: photo.alt || `${category.label} ${index + 1}`,
-      })),
-  })).filter((category) => category.items.length);
-}
-
-const fallbackReviews = [
+const reviews = [
   {
     name: "משפחת הלקוח",
     date: "03/01/2025",
@@ -338,7 +313,7 @@ function SiteBackdrop() {
   );
 }
 
-function GallerySection({ categories }) {
+function GallerySection() {
   const galleryRef = useRef(null);
   const lineRef = useRef(null);
   useEffect(() => {
@@ -406,7 +381,7 @@ function GallerySection({ categories }) {
       <div className="gallery-line" ref={lineRef} aria-hidden="true" />
 
       <div className="gallery-categories">
-        {categories.map((category) => (
+        {galleryCategories.map((category) => (
           <article
             className="gallery-category"
             id={category.id}
@@ -438,7 +413,7 @@ function GallerySection({ categories }) {
   );
 }
 
-function ReviewsSection({ reviews, onSubmitReview }) {
+function ReviewsSection() {
   const reviewsRef = useRef(null);
 
   useEffect(() => {
@@ -491,72 +466,16 @@ function ReviewsSection({ reviews, onSubmitReview }) {
 
       <div className="reviews-track">
         {reviews.map((review) => (
-          <article className="review-card" key={review.id || `${review.name}-${review.date}`}>
+          <article className="review-card" key={`${review.name}-${review.date}`}>
             <div>
               <strong>{review.name}</strong>
-              <span>{review.date || review.event_date || "ביקורת לקוח"}</span>
+              <span>{review.date}</span>
             </div>
             <p>“{review.quote}”</p>
           </article>
         ))}
       </div>
-
-      <ReviewSubmitForm onSubmitReview={onSubmitReview} />
     </section>
-  );
-}
-
-function ReviewSubmitForm({ onSubmitReview }) {
-  const [form, setForm] = useState({ name: "", quote: "", rating: 5 });
-  const [status, setStatus] = useState("idle");
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setStatus("saving");
-
-    try {
-      await onSubmitReview(form);
-      setForm({ name: "", quote: "", rating: 5 });
-      setStatus("sent");
-    } catch (error) {
-      console.error(error);
-      setStatus("error");
-    }
-  };
-
-  return (
-    <form className="review-submit" onSubmit={handleSubmit}>
-      <div>
-        <p>רוצים לפרגן?</p>
-        <h3>השאירו ביקורת לאתר</h3>
-        <span>הביקורת תעלה אחרי אישור אדמין, כדי לשמור על האתר נקי.</span>
-      </div>
-      <label>
-        שם
-        <input
-          required
-          minLength="2"
-          value={form.name}
-          onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-          placeholder="השם שלכם"
-        />
-      </label>
-      <label>
-        ביקורת
-        <textarea
-          required
-          minLength="10"
-          value={form.quote}
-          onChange={(event) => setForm((current) => ({ ...current, quote: event.target.value }))}
-          placeholder="איך הייתה החוויה עם אופק?"
-        />
-      </label>
-      <button className="button button-dark" type="submit" disabled={status === "saving"}>
-        {status === "saving" ? "שולח..." : "שליחת ביקורת"}
-      </button>
-      {status === "sent" && <small>תודה! הביקורת ממתינה לאישור.</small>}
-      {status === "error" && <small>לא הצלחתי לשלוח כרגע. נבדוק את החיבור ל־Supabase.</small>}
-    </form>
   );
 }
 
@@ -965,150 +884,9 @@ function CursorTrail() {
   return <canvas ref={canvasRef} className="cursor-trail" aria-hidden="true" />;
 }
 
-function AdminPanel({ onRefresh }) {
-  const [isOpen, setIsOpen] = useState(() => window.location.hash === "#admin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [session, setSession] = useState({ user: null, profile: null });
-  const [adminReviews, setAdminReviews] = useState([]);
-  const [upload, setUpload] = useState({ categoryId: "wedding", alt: "", file: null });
-  const [message, setMessage] = useState("");
-
-  const isAdmin = session.profile?.role === "admin";
-
-  const refreshAdmin = useCallback(async () => {
-    const nextSession = await getAdminSession();
-    setSession(nextSession);
-    if (nextSession.profile?.role === "admin") {
-      setAdminReviews(await loadAdminReviews());
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen || !isSupabaseConfigured) return;
-    refreshAdmin().catch(console.error);
-  }, [isOpen, refreshAdmin]);
-
-  if (!isOpen) {
-    return (
-      <button className="admin-trigger" type="button" onClick={() => setIsOpen(true)}>
-        Admin
-      </button>
-    );
-  }
-
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    setMessage("מתחבר...");
-    try {
-      await signInAdmin(email, password);
-      await refreshAdmin();
-      setMessage("");
-    } catch (error) {
-      console.error(error);
-      setMessage("התחברות נכשלה. בדוק מייל/סיסמה או הרשאת אדמין.");
-    }
-  };
-
-  const handleUpload = async (event) => {
-    event.preventDefault();
-    if (!upload.file) return;
-    setMessage("מעלה תמונה...");
-    try {
-      await uploadGalleryPhoto(upload);
-      setUpload({ categoryId: "wedding", alt: "", file: null });
-      await onRefresh();
-      setMessage("התמונה עלתה בהצלחה.");
-    } catch (error) {
-      console.error(error);
-      setMessage("העלאת התמונה נכשלה.");
-    }
-  };
-
-  const setReviewStatus = async (id, status) => {
-    await updateReviewStatus(id, status);
-    await refreshAdmin();
-    await onRefresh();
-  };
-
-  return (
-    <aside className="admin-panel" dir="rtl">
-      <button className="admin-close" type="button" onClick={() => setIsOpen(false)}>×</button>
-      <h3>ניהול אתר</h3>
-
-      {!isSupabaseConfigured ? (
-        <p>חסר חיבור Supabase. צריך להוסיף VITE_SUPABASE_URL ו־VITE_SUPABASE_PUBLISHABLE_KEY.</p>
-      ) : !session.user ? (
-        <form onSubmit={handleLogin} className="admin-form">
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="אימייל אדמין" />
-          <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="סיסמה" />
-          <button className="button button-dark" type="submit">כניסה</button>
-        </form>
-      ) : !isAdmin ? (
-        <p>המשתמש מחובר, אבל עדיין לא מוגדר כאדמין.</p>
-      ) : (
-        <>
-          <form className="admin-form" onSubmit={handleUpload}>
-            <strong>הוספת תמונה</strong>
-            <select value={upload.categoryId} onChange={(e) => setUpload((v) => ({ ...v, categoryId: e.target.value }))}>
-              <option value="wedding">חתונה</option>
-              <option value="bar-mitzvah">בר מצווה</option>
-              <option value="brit">ברית</option>
-            </select>
-            <input value={upload.alt} onChange={(e) => setUpload((v) => ({ ...v, alt: e.target.value }))} placeholder="תיאור קצר" />
-            <input type="file" accept="image/*" onChange={(e) => setUpload((v) => ({ ...v, file: e.target.files?.[0] || null }))} />
-            <button className="button button-dark" type="submit">העלאה</button>
-          </form>
-
-          <div className="admin-reviews">
-            <strong>ביקורות</strong>
-            {adminReviews.map((review) => (
-              <article key={review.id}>
-                <span>{review.status}</span>
-                <b>{review.name}</b>
-                <p>{review.quote}</p>
-                <button type="button" onClick={() => setReviewStatus(review.id, "approved")}>אשר</button>
-                <button type="button" onClick={() => setReviewStatus(review.id, "rejected")}>דחה</button>
-              </article>
-            ))}
-          </div>
-
-          <button className="text-link" type="button" onClick={async () => { await signOutAdmin(); setSession({ user: null, profile: null }); }}>
-            יציאה
-          </button>
-        </>
-      )}
-
-      {message && <small>{message}</small>}
-    </aside>
-  );
-}
-
 function App() {
   const [siteReady, setSiteReady] = useState(false);
-  const [galleryCategories, setGalleryCategories] = useState(fallbackGalleryCategories);
-  const [reviews, setReviews] = useState(fallbackReviews);
   const handleSiteReady = useCallback(() => setSiteReady(true), []);
-
-  const refreshContent = useCallback(async () => {
-    if (!isSupabaseConfigured) return;
-
-    try {
-      const content = await loadPublicContent();
-      setGalleryCategories(buildGalleryCategories(content.galleryPhotos));
-      if (content.reviews?.length) setReviews(content.reviews);
-    } catch (error) {
-      console.error("Supabase content load failed", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    refreshContent();
-  }, [refreshContent]);
-
-  const handleSubmitReview = useCallback(async (form) => {
-    await submitVisitorReview(form);
-  }, []);
 
   return (
     <>
@@ -1126,12 +904,11 @@ function App() {
               <Hero />
             </div>
             <main className="content-stage">
-              <GallerySection categories={galleryCategories} />
-              <ReviewsSection reviews={reviews} onSubmitReview={handleSubmitReview} />
+              <GallerySection />
+              <ReviewsSection />
               <AboutSection />
               <ContactSection />
             </main>
-            <AdminPanel onRefresh={refreshContent} />
           </>
         ) : null}
       </div>

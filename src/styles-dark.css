@@ -233,3 +233,21 @@ html.theme-dark .site-preloader-kicker {
     mix-blend-mode: normal;
   }
 }
+
+html.theme-dark .review-submit {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(16, 16, 16, 0.82);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+}
+
+html.theme-dark .review-submit span,
+html.theme-dark .review-submit small {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+html.theme-dark .review-submit input,
+html.theme-dark .review-submit textarea {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f5f2ee;
+}

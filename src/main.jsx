@@ -612,10 +612,12 @@ function SitePreloader({ onComplete }) {
     let cancelled = false;
     let finished = false;
     let assetsReady = false;
+    let introReady = false;
+    let introDone = false;
     let assetsLoaded = 0;
     const startedAt = performance.now();
     const minDuration = 1200;
-    const maxDuration = 14000;
+    const maxDuration = 45000;
 
     const setProgress = (value) => {
       if (barRef.current) {
@@ -624,7 +626,7 @@ function SitePreloader({ onComplete }) {
     };
 
     const tryFinish = () => {
-      if (cancelled || finished || !assetsReady) return;
+      if (cancelled || finished || !assetsReady || !introDone) return;
       finished = true;
       window.clearTimeout(timeoutId);
 
@@ -655,7 +657,9 @@ function SitePreloader({ onComplete }) {
       const introProgress =
         video && video.duration && !Number.isNaN(video.duration)
           ? (video.currentTime / video.duration) * 45
-          : 0;
+          : introReady
+            ? 8
+            : 0;
       const assetProgress =
         (assetsLoaded / PRELOAD_BACKGROUND_ASSETS.length) * 55;
       setProgress(Math.min(99, Math.round(introProgress + assetProgress)));
@@ -676,7 +680,9 @@ function SitePreloader({ onComplete }) {
     });
 
     const timeoutId = window.setTimeout(() => {
+      // Fallback only for broken/blocked video loading. Normal flow waits for the intro video to end.
       assetsReady = true;
+      introDone = true;
       setProgress(100);
       tryFinish();
     }, maxDuration);
@@ -685,25 +691,49 @@ function SitePreloader({ onComplete }) {
       const video = videoRef.current;
       if (!video) return false;
 
+      const playIntro = () => {
+        if (introReady) return;
+        introReady = true;
+        updateProgress();
+        const playPromise = video.play();
+        if (playPromise) {
+          playPromise.catch(() => {
+            // If the browser blocks playback, don't trap visitors forever.
+            introDone = true;
+            tryFinish();
+          });
+        }
+      };
+
       const onIntroProgress = () => updateProgress();
       const onIntroDone = () => {
+        introDone = true;
+        setProgress(100);
+        tryFinish();
+      };
+      const onIntroError = () => {
+        introDone = true;
         setProgress(100);
         tryFinish();
       };
 
+      video.addEventListener("canplaythrough", playIntro, { once: true });
+      video.addEventListener("loadeddata", playIntro, { once: true });
       video.addEventListener("timeupdate", onIntroProgress);
       video.addEventListener("ended", onIntroDone);
-      video.addEventListener("error", onIntroDone);
+      video.addEventListener("error", onIntroError);
 
-      const playPromise = video.play();
-      if (playPromise) {
-        playPromise.catch(onIntroDone);
+      video.load();
+      if (video.readyState >= 3) {
+        playIntro();
       }
 
       return () => {
+        video.removeEventListener("canplaythrough", playIntro);
+        video.removeEventListener("loadeddata", playIntro);
         video.removeEventListener("timeupdate", onIntroProgress);
         video.removeEventListener("ended", onIntroDone);
-        video.removeEventListener("error", onIntroDone);
+        video.removeEventListener("error", onIntroError);
         video.pause();
       };
     };
@@ -741,7 +771,6 @@ function SitePreloader({ onComplete }) {
         ref={videoRef}
         className="site-preloader-video"
         src={PRELOADER_VIDEO}
-        autoPlay
         muted
         playsInline
         preload="auto"

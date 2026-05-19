@@ -246,12 +246,36 @@ function SiteBackdrop() {
   const backdropRef = useRef(null);
   const videoRef = useRef(null);
   const [videoReady, setVideoReady] = useState(false);
+  const [isMobileVideo, setIsMobileVideo] = useState(false);
 
   useEffect(() => {
-    if (!backdropRef.current || !videoRef.current || !videoReady) return;
+    const media = window.matchMedia("(max-width: 820px)");
+    const update = () => setIsMobileVideo(media.matches);
 
-    const tween = gsap.to(videoRef.current, {
-      currentTime: videoRef.current.duration,
+    update();
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!backdropRef.current || !video || !videoReady) return;
+
+    if (isMobileVideo) {
+      video.loop = true;
+      video.playbackRate = 0.82;
+      video.currentTime = Math.min(video.currentTime || 0, 0.2);
+      video.play().catch(() => {});
+
+      return () => {
+        video.pause();
+        video.loop = false;
+        video.playbackRate = 1;
+      };
+    }
+
+    const tween = gsap.to(video, {
+      currentTime: video.duration,
       ease: "none",
       scrollTrigger: {
         trigger: document.documentElement,
@@ -265,7 +289,7 @@ function SiteBackdrop() {
       tween.scrollTrigger?.kill();
       tween.kill();
     };
-  }, [videoReady]);
+  }, [isMobileVideo, videoReady]);
 
   return (
     <div className="site-backdrop" ref={backdropRef} aria-hidden="true">
@@ -274,8 +298,12 @@ function SiteBackdrop() {
         className={`site-video ${videoReady ? "is-ready" : ""}`}
         muted
         playsInline
-        preload="metadata"
+        autoPlay={isMobileVideo}
+        loop={isMobileVideo}
+        preload={isMobileVideo ? "auto" : "metadata"}
         poster="/assets/ofek-logo.jpg"
+        onLoadedData={() => setVideoReady(true)}
+        onCanPlay={() => setVideoReady(true)}
         onLoadedMetadata={() => setVideoReady(true)}
       >
         <source src={HERO_VIDEO} type="video/mp4" />

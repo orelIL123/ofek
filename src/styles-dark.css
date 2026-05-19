@@ -216,3 +216,20 @@ html.theme-dark .site-preloader {
 html.theme-dark .site-preloader-kicker {
   color: #f5f2ee;
 }
+
+@media (max-width: 820px) {
+  html.theme-dark .site-video {
+    filter: grayscale(0.72) contrast(1.02) brightness(0.84);
+  }
+
+  html.theme-dark .site-video.is-ready {
+    opacity: 0.96;
+  }
+
+  html.theme-dark .site-backdrop-wash {
+    background:
+      linear-gradient(180deg, rgba(5, 5, 5, 0.06), rgba(5, 5, 5, 0.24)),
+      radial-gradient(circle at 50% 12%, rgba(200, 164, 107, 0.1), transparent 16rem);
+    mix-blend-mode: normal;
+  }
+}

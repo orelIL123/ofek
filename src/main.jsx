@@ -9,36 +9,66 @@ gsap.registerPlugin(ScrollTrigger);
 
 const PHONE_DISPLAY = "052-8804065";
 const PHONE_LINK = "972528804065";
+const INSTAGRAM_URL = "https://www.instagram.com/picchak_1/";
+const INSTAGRAM_REELS_URL = "https://www.instagram.com/picchak_1/reels/";
 const WHATSAPP_MESSAGE = encodeURIComponent(
-  "היי אופק, הגעתי מהאתר ואשמח לשמוע פרטים על צילום לאירוע."
+  "היי פיקצאק, הגעתי מהאתר ואשמח לשמוע פרטים על צילום לאירוע."
 );
 
 const PRELOADER_VIDEO = "/assets/pre_loading.mp4";
 const HERO_VIDEO = "/assets/hero-scroll-video.mp4";
+/** Portrait 9:16 — place file at public/assets/hero-mobile-video.mp4 */
+const HERO_VIDEO_MOBILE = "/assets/hero-mobile-video.mp4";
+const BRAND_LOGO = "/assets/brand/picchak-logo.webp";
+const BRAND_PORTRAIT = "/assets/brand/picchak-portrait.jpg";
+const HERO_STILL = "/assets/gallery/picchak/03.webp";
+
+function pickHeroVideo(isMobile) {
+  return isMobile ? HERO_VIDEO_MOBILE : HERO_VIDEO;
+}
+
+const picchakPhotos = [
+  "/assets/gallery/picchak/01.webp",
+  "/assets/gallery/picchak/02.webp",
+  "/assets/gallery/picchak/03.webp",
+  "/assets/gallery/picchak/04.webp",
+  "/assets/gallery/picchak/05.webp",
+  "/assets/gallery/picchak/06.webp",
+  "/assets/gallery/picchak/07.webp",
+  "/assets/gallery/picchak/08.webp",
+  "/assets/gallery/picchak/09.webp",
+  "/assets/gallery/picchak/10.webp",
+  "/assets/gallery/picchak/11.webp",
+  "/assets/gallery/picchak/12.webp",
+  "/assets/gallery/picchak/13.jpg",
+];
+
+const curatedGalleryPhotos = [
+  picchakPhotos[2],
+  picchakPhotos[6],
+  picchakPhotos[0],
+  picchakPhotos[9],
+  picchakPhotos[12],
+  picchakPhotos[3],
+  picchakPhotos[8],
+  picchakPhotos[11],
+];
 
 const galleryCategories = [
   {
-    id: "wedding",
-    label: "חתונה",
-    folder: "weddings",
-    count: 5,
+    id: "events",
+    label: "אירועים וחתונות",
+    items: curatedGalleryPhotos.slice(0, 4),
   },
   {
-    id: "bar-mitzvah",
-    label: "בר מצווה",
-    folder: "bar-mitzvah",
-    count: 4,
-  },
-  {
-    id: "brit",
-    label: "ברית",
-    folder: "brit",
-    count: 4,
+    id: "ceremonies",
+    label: "ברית ובר מצווה",
+    items: curatedGalleryPhotos.slice(4, 8),
   },
 ].map((category) => ({
   ...category,
-  items: Array.from({ length: category.count }, (_, index) => ({
-    src: `/assets/gallery/${category.folder}/${String(index + 1).padStart(2, "0")}.webp`,
+  items: category.items.map((src, index) => ({
+    src,
     alt: `${category.label} ${index + 1}`,
   })),
 }));
@@ -50,7 +80,7 @@ const reviews = [
     name: "משפחת הלקוח",
     date: "03/01/2025",
     quote:
-      "מעבר להיותו מקצועי ברמות אחרות, אופק סבלני, קשוב מאוד לילד ולנו. כל התמונות איכותיות מאוד, האלבום מעוצב, המגנטים ברמה גבוהה — בהחלט אחת הבחירות הכי טובות שלנו לאירוע.",
+      "מעבר להיותם מקצועיים ברמות אחרות, צוות פיקצאק סבלני וקשוב לכל המשפחה. התמונות יצאו מרגשות, האלבום מעוצב מדהים והשירות ברמה גבוהה.",
   },
   {
     name: "Yehuda",
@@ -62,13 +92,13 @@ const reviews = [
     name: "אמיתי מ.",
     date: "27/06/2023",
     quote:
-      "לקחתי את אופק לצילום ברית, סטילס, אלבום דיגיטלי ומגנטים. השירות והחיוך היו מצוינים, התמונות הגיעו כבר באותו היום, וקיבלנו גם בלוקי עץ במתנה.",
+      "לקחנו את פיקצאק לצילום ברית, סטילס, אלבום דיגיטלי ומגנטים. היחס היה מצוין, התמונות הגיעו מהר מאוד והכל היה איכותי ומסודר.",
   },
   {
     name: "אדיר ס.",
     date: "17/05/2023",
     quote:
-      "תחת מצב ביטחוני לא פשוט ושינויים בשעות ובמיקום, אופק היה לעזר רב הרבה מעבר למצופה — הכול באיכות, מקצועיות, מחיר הוגן ושירות הכי טוב.",
+      "גם עם שינויים של הרגע האחרון בשעות ובמיקום, פיקצאק היו זמינים ועזרו מעבר למצופה — הכול באיכות, מקצועיות ושירות מכל הלב.",
   },
   {
     name: "Nehorai C.",
@@ -190,9 +220,10 @@ function Hero() {
 
         <header className="topbar">
           <div className="topbar-side">
-            <img src="/assets/ofek-logo.jpg" alt="לוגו אופק פרץ" />
+            <img src={BRAND_LOGO} alt="לוגו פיקצאק" />
             <nav>
               <a href="#works">עבודות</a>
+              <a href="#reels">וידאו</a>
               <a href="#about">אודות</a>
               <a href="#contact">יצירת קשר</a>
             </nav>
@@ -200,7 +231,7 @@ function Hero() {
 
           <div className="hero-brand">
             <p>צילום סטילס ווידאו לאירועים</p>
-            <h1 className="hero-brand-title">אופק פרץ</h1>
+            <h1 className="hero-brand-title">פיקצאק</h1>
           </div>
         </header>
 
@@ -243,71 +274,9 @@ function Hero() {
 }
 
 function SiteBackdrop() {
-  const backdropRef = useRef(null);
-  const videoRef = useRef(null);
-  const [videoReady, setVideoReady] = useState(false);
-  const [isMobileVideo, setIsMobileVideo] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 820px)");
-    const update = () => setIsMobileVideo(media.matches);
-
-    update();
-    media.addEventListener?.("change", update);
-    return () => media.removeEventListener?.("change", update);
-  }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!backdropRef.current || !video || !videoReady) return;
-
-    if (isMobileVideo) {
-      video.loop = true;
-      video.playbackRate = 0.82;
-      video.currentTime = Math.min(video.currentTime || 0, 0.2);
-      video.play().catch(() => {});
-
-      return () => {
-        video.pause();
-        video.loop = false;
-        video.playbackRate = 1;
-      };
-    }
-
-    const tween = gsap.to(video, {
-      currentTime: video.duration,
-      ease: "none",
-      scrollTrigger: {
-        trigger: document.documentElement,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: true,
-      },
-    });
-
-    return () => {
-      tween.scrollTrigger?.kill();
-      tween.kill();
-    };
-  }, [isMobileVideo, videoReady]);
-
   return (
-    <div className="site-backdrop" ref={backdropRef} aria-hidden="true">
-      <video
-        ref={videoRef}
-        className={`site-video ${videoReady ? "is-ready" : ""}`}
-        muted
-        playsInline
-        autoPlay={isMobileVideo}
-        loop={isMobileVideo}
-        preload={isMobileVideo ? "auto" : "metadata"}
-        poster="/assets/ofek-logo.jpg"
-        onLoadedData={() => setVideoReady(true)}
-        onCanPlay={() => setVideoReady(true)}
-        onLoadedMetadata={() => setVideoReady(true)}
-      >
-        <source src={HERO_VIDEO} type="video/mp4" />
-      </video>
+    <div className="site-backdrop" aria-hidden="true">
+      <img className="site-video is-ready" src={HERO_STILL} alt="" loading="eager" />
       <div className="site-backdrop-wash" />
     </div>
   );
@@ -506,7 +475,7 @@ function AboutSection() {
 
       <div className="about-copy">
         <p>
-          אופק פרץ מתמחה בצילום אירועים פרטיים ועסקיים, עם שילוב של סטילס,
+          פיקצאק מתמחים בצילום אירועים פרטיים ועסקיים, עם שילוב של סטילס,
           וידאו ועריכה שמחזיקים יחד את כל מה שקורה באמת: ההתרגשות, התנועה,
           המבטים הקטנים שבדרך כלל חולפים מהר מדי.
         </p>
@@ -517,7 +486,7 @@ function AboutSection() {
       </div>
 
       <figure className="about-portrait">
-        <img src="/assets/ofek-portrait.png" alt="אופק פרץ" loading="lazy" />
+        <img src={BRAND_PORTRAIT} alt="פיקצאק" loading="lazy" />
       </figure>
     </section>
   );
@@ -545,22 +514,58 @@ function ContactSection() {
         </a>
         <a
           className="text-link"
-          href="https://www.instagram.com/OFEK.PERETZ2/"
+          href={INSTAGRAM_URL}
           target="_blank"
           rel="noreferrer"
         >
-          אינסטגרם
+          אינסטגרם @picchak_1
         </a>
       </div>
     </section>
   );
 }
 
-const PRELOAD_BACKGROUND_ASSETS = [
-  HERO_VIDEO,
-  "/assets/ofek-portrait.png",
-  ...galleryItems.slice(0, 4).map((item) => item.src),
-];
+function ReelsSection() {
+  return (
+    <section className="section reels" id="reels">
+      <div className="section-heading">
+        <p>וידאו</p>
+        <h2>טיזר קצר מהסגנון של פיקצאק</h2>
+      </div>
+
+      <div className="reels-grid">
+        <figure className="reels-video-card">
+          <img className="reels-video" src={curatedGalleryPhotos[4]} alt="רגע וידאו מפיקצאק" loading="lazy" />
+          <figcaption>סרטון קצר להצגה מהירה לפני מעבר לרילס המלא.</figcaption>
+        </figure>
+
+        <div className="reels-copy">
+          <p>
+            רוצים לראות עוד קליפים של אירועים בזמן אמת? הרילס שלנו מתעדכן
+            באופן קבוע ונותן תחושה אמיתית של האנרגיה באירוע.
+          </p>
+          <a
+            className="button button-dark"
+            href={INSTAGRAM_REELS_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            לצפייה בכל הרילס
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function getPreloadBackgroundAssets() {
+  const isMobile = window.matchMedia("(max-width: 820px)").matches;
+  return [
+    pickHeroVideo(isMobile),
+    BRAND_PORTRAIT,
+    ...galleryItems.slice(0, 4).map((item) => item.src),
+  ];
+}
 
 function loadAsset(src) {
   return new Promise((resolve) => {
@@ -573,7 +578,8 @@ function loadAsset(src) {
 
     if (src.endsWith(".mp4")) {
       const video = document.createElement("video");
-      video.preload = src === HERO_VIDEO ? "metadata" : "auto";
+      video.preload =
+        src === HERO_VIDEO || src === HERO_VIDEO_MOBILE ? "metadata" : "auto";
       video.muted = true;
       video.playsInline = true;
       video.onloadedmetadata = finish;
@@ -615,6 +621,7 @@ function SitePreloader({ onComplete }) {
     let introReady = false;
     let introDone = false;
     let assetsLoaded = 0;
+    const preloadAssets = getPreloadBackgroundAssets();
     const startedAt = performance.now();
     const minDuration = 1200;
     const maxDuration = 45000;
@@ -660,8 +667,7 @@ function SitePreloader({ onComplete }) {
           : introReady
             ? 8
             : 0;
-      const assetProgress =
-        (assetsLoaded / PRELOAD_BACKGROUND_ASSETS.length) * 55;
+      const assetProgress = (assetsLoaded / preloadAssets.length) * 55;
       setProgress(Math.min(99, Math.round(introProgress + assetProgress)));
     };
 
@@ -669,13 +675,13 @@ function SitePreloader({ onComplete }) {
       assetsLoaded += 1;
       updateProgress();
 
-      if (assetsLoaded >= PRELOAD_BACKGROUND_ASSETS.length) {
+      if (assetsLoaded >= preloadAssets.length) {
         assetsReady = true;
         tryFinish();
       }
     };
 
-    PRELOAD_BACKGROUND_ASSETS.forEach((src) => {
+    preloadAssets.forEach((src) => {
       loadAsset(src).then(onAssetLoaded);
     });
 
@@ -914,32 +920,25 @@ function CursorTrail() {
 }
 
 function App() {
-  const [siteReady, setSiteReady] = useState(false);
-  const handleSiteReady = useCallback(() => setSiteReady(true), []);
-
   return (
     <>
-      {!siteReady && <SitePreloader onComplete={handleSiteReady} />}
-      <div className={`site-root ${siteReady ? "is-ready" : ""}`}>
-        {siteReady ? (
-          <>
-            <SiteBackdrop />
-            <div className="ambient-lights" aria-hidden="true">
-              <span />
-              <span />
-            </div>
-            <CursorTrail />
-            <div className="site-stage">
-              <Hero />
-            </div>
-            <main className="content-stage">
-              <GallerySection />
-              <ReviewsSection />
-              <AboutSection />
-              <ContactSection />
-            </main>
-          </>
-        ) : null}
+      <div className="site-root is-ready">
+        <SiteBackdrop />
+        <div className="ambient-lights" aria-hidden="true">
+          <span />
+          <span />
+        </div>
+        <CursorTrail />
+        <div className="site-stage">
+          <Hero />
+        </div>
+        <main className="content-stage">
+          <GallerySection />
+          <ReelsSection />
+          <ReviewsSection />
+          <AboutSection />
+          <ContactSection />
+        </main>
       </div>
     </>
   );

@@ -658,6 +658,54 @@ main {
     #fafafa;
 }
 
+.reels {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(184, 199, 188, 0.16), rgba(255, 255, 255, 0.88)),
+    radial-gradient(circle at 84% 16%, rgba(200, 164, 107, 0.14), transparent 18rem),
+    radial-gradient(circle at 12% 86%, rgba(179, 58, 76, 0.12), transparent 20rem);
+}
+
+.reels-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: center;
+}
+
+.reels-video-card {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 1.4rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(18, 18, 18, 0.08);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.08);
+}
+
+.reels-video {
+  width: 100%;
+  display: block;
+  border-radius: 1rem;
+  background: #111;
+}
+
+.reels-video-card figcaption {
+  margin-top: 0.75rem;
+  color: rgba(18, 18, 18, 0.65);
+}
+
+.reels-copy {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.reels-copy p {
+  margin: 0;
+  color: rgba(18, 18, 18, 0.74);
+}
+
 .reviews::before {
   content: "";
   position: absolute;
@@ -940,37 +988,33 @@ main {
     grid-template-rows: auto 1fr auto auto;
   }
 
-  /* Video becomes a contained rounded frame on mobile, not full-bleed */
+  /* Full-bleed video on mobile — no framed card */
   .site-backdrop {
     position: fixed;
-    inset: auto;
-    top: 12vh;
-    left: 50%;
-    transform: translate3d(-50%, 0, 0);
-    width: min(84vw, 390px);
-    height: min(45vh, 430px);
-    border-radius: 1.45rem;
-    overflow: hidden;
-    z-index: 0;
-    box-shadow: 0 20px 54px rgba(0, 0, 0, 0.3);
-    contain: layout paint;
+    inset: 0;
+    transform: none;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    box-shadow: none;
+    contain: none;
   }
 
   .site-video {
     object-position: center center;
-    filter: grayscale(0.85) contrast(1.02) brightness(0.86);
-    transform: translateZ(0) scale(1.01);
-    will-change: opacity, transform;
+    filter: grayscale(0.88) contrast(1.03) brightness(0.82);
+    transform: translateZ(0);
+    will-change: opacity;
   }
 
   .site-video.is-ready {
-    opacity: 0.96;
+    opacity: 0.94;
   }
 
   .site-backdrop-wash {
     background:
-      linear-gradient(180deg, rgba(5, 5, 5, 0.08), rgba(5, 5, 5, 0.28)),
-      radial-gradient(circle at 50% 12%, rgba(200, 164, 107, 0.12), transparent 16rem);
+      linear-gradient(180deg, rgba(5, 5, 5, 0.12) 0%, rgba(5, 5, 5, 0.06) 38%, rgba(5, 5, 5, 0.42) 100%),
+      radial-gradient(circle at 50% 18%, rgba(200, 164, 107, 0.1), transparent 18rem);
     mix-blend-mode: normal;
   }
 
@@ -978,6 +1022,10 @@ main {
   .topbar {
     grid-template-columns: 1fr;
     gap: 0.75rem;
+  }
+
+  .reels-grid {
+    grid-template-columns: 1fr;
   }
 
   .topbar-side {
@@ -1021,31 +1069,43 @@ main {
     display: none !important;
   }
 
-  /* ── Floating photos ──────────────────────── */
+  /* ── Floating photos — row above WhatsApp / phone CTAs ── */
+  .hero-photo-cloud {
+    z-index: 3;
+    inset: auto 0.4rem 13.25rem;
+    top: auto;
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+    align-items: end;
+    justify-items: center;
+  }
+
   .hero-floating-photo {
-    width: clamp(52px, 14vw, 68px);
-    border-radius: 0.85rem;
+    position: relative;
+    width: clamp(80px, 19vw, 108px);
+    border-radius: 0.95rem;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    top: auto !important;
   }
 
   .photo-1 {
-    left: 0.6rem;
-    bottom: 8vh;
+    --rotation: -6deg;
   }
 
   .photo-2 {
-    left: 4.2rem;
-    bottom: 2vh;
+    --rotation: 4deg;
   }
 
   .photo-3 {
-    right: 0.6rem;
-    top: auto;
-    bottom: 11vh;
+    --rotation: -4deg;
   }
 
   .photo-4 {
-    right: 4.2rem;
-    bottom: 5vh;
+    --rotation: 6deg;
   }
 
   /* ── Buttons ──────────────────────────────── */
@@ -1171,15 +1231,6 @@ main {
     font-size: clamp(1.65rem, 9.5vw, 2.2rem);
   }
 
-  .hero-floating-photo {
-    width: 48px;
-  }
-
-  .photo-1 { left: 0.3rem; bottom: 7vh; }
-  .photo-2 { left: 3.2rem; bottom: 1.5vh; }
-  .photo-3 { right: 0.3rem; bottom: 10vh; }
-  .photo-4 { right: 3.2rem; bottom: 4vh; }
-
   .topbar-side nav {
     font-size: 0.82rem;
   }
@@ -1227,6 +1278,10 @@ main {
   .hero-actions .button {
     text-align: center;
     justify-content: center;
+  }
+
+  .hero-photo-cloud {
+    bottom: 15.75rem;
   }
 }
 

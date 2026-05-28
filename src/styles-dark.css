@@ -166,6 +166,24 @@ html.theme-dark .review-card p {
   color: rgba(255, 255, 255, 0.72);
 }
 
+html.theme-dark .reels {
+  background:
+    linear-gradient(180deg, rgba(8, 8, 8, 0.95), rgba(12, 12, 12, 0.92)),
+    radial-gradient(circle at 84% 16%, rgba(200, 164, 107, 0.08), transparent 18rem),
+    radial-gradient(circle at 12% 86%, rgba(179, 58, 76, 0.08), transparent 20rem);
+}
+
+html.theme-dark .reels-video-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+html.theme-dark .reels-video-card figcaption,
+html.theme-dark .reels-copy p {
+  color: rgba(255, 255, 255, 0.74);
+}
+
 html.theme-dark .about-copy {
   color: rgba(255, 255, 255, 0.68);
 }

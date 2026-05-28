@@ -189,11 +189,14 @@ function Hero() {
         scrollTrigger: heroScroll,
       });
 
-      gsap.to(".site-video", {
-        yPercent: 8,
-        ease: "none",
-        scrollTrigger: heroScroll,
-      });
+      const backdropMedia = document.querySelector(".site-video");
+      if (backdropMedia) {
+        gsap.to(backdropMedia, {
+          yPercent: 8,
+          ease: "none",
+          scrollTrigger: heroScroll,
+        });
+      }
 
       gsap.from(".hero-floating-photo", {
         y: 18,
